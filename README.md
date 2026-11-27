@@ -1,71 +1,117 @@
-# DeveloperProfile CC2 — Profil développeur avec Jetpack Compose
+# DeveloperProfileInteractive — Profil développeur interactif
 
-## Présentation
+Application Android de portfolio développée en **Kotlin** avec **Jetpack Compose** et **Material Design 3**. Elle reprend la fiche de profil du précédent devoir (`DeveloperProfile-CC2`) et ajoute des interactions locales pour consulter et filtrer les projets.
 
-Application Android réalisée en Kotlin avec Jetpack Compose pour le devoir CC2 « Amélioration UI du Profil développeur ».
-
-Elle présente le profil fictif d'Alex TANGUY, développeur Android junior : rôle, présentation, compétences, projets et coordonnées. Les données sont définies localement dans le code Kotlin ; aucune API ni base de données n'est utilisée.
+Le profil présenté est fictif : **Alex TANGUY**, développeur Android junior. Les données restent dans le code ; l'application ne communique avec aucune API et n'utilise pas de base de données.
 
 ## Fonctionnalités
 
-- Carte d'en-tête avec avatar et informations de profil.
-- Liste horizontale défilante des compétences.
-- Liste verticale défilante de projets avec description et technologies.
-- Carte de contact avec disponibilité et adresse e-mail en lecture seule.
-- Bouton « Contacter le développeur » : callback présent, sans action externe pour ce devoir.
-- Affichage en thème clair et en thème sombre.
-- Deux previews Compose pour visualiser les rendus.
+- **Présentation du profil** : avatar, nom, rôle et description.
+- **Compétences** : liste horizontale défilante avec `LazyRow`.
+- **Projets** : liste verticale avec `LazyColumn`, titre, description et technologies. Deux projets de démonstration sont fournis : *Profil développeur* et *Product Explorer*.
+- **Recherche en direct** : filtrage des projets par titre, description ou technologie, sans distinction entre majuscules et minuscules.
+- **Favoris** : ajout et retrait d'un projet avec un bouton dédié.
+- **Filtre « Favoris uniquement »** : affichage des projets favoris, combinable avec la recherche.
+- **Compteur de résultats** : nombre de projets actuellement visibles.
+- **Contact** : bouton permettant d'afficher ou masquer la disponibilité et une adresse e-mail fictive en lecture seule.
+- **Thèmes clair et sombre** : couleurs, typographies et composants Material Design 3.
+- **Deux previews Compose** : présentation d'états différents sans exécuter le ViewModel.
 
-## Composants Compose utilisés
+## Architecture et gestion des états
 
-- `Text` pour les titres et les descriptions.
-- `Image` et `Icon` pour l'avatar et les informations visuelles.
-- `Card` et `Surface` pour regrouper les informations.
-- `OutlinedTextField` en lecture seule pour l'adresse e-mail.
-- `Button` pour l'action de contact.
-- `@Composable`, paramètres, `Modifier` et callback `onClick` pour construire des composants réutilisables.
+L'interface sépare la gestion des données de leur affichage :
 
-Composants réutilisables : `ProfileHeader`, `SkillCard`, `ProjectCard`, `ContactInfo` et `ProfileAction`.
+```text
+MainActivity
+    └── ProfileContainer (Stateful)
+          ├── ProfileViewModel
+          │     └── MutableStateFlow<ProfileUiState>
+          └── ProfileScreen (Stateless)
+                ├── ProfileHeader
+                ├── SkillCard (LazyRow)
+                ├── ProjectCard (LazyColumn)
+                └── ContactDisclosure
+                      └── ContactInfo
+```
 
-## Layouts et listes
+### `ProfileViewModel.kt`
 
-- `Column` : organisation verticale à l'intérieur des cartes.
-- `Row` : avatar et texte côte à côte, ou icône et information.
-- `Box` : superposition du badge sur l'avatar.
-- `Spacer` : espaces entre les éléments.
-- `LazyRow` : liste de compétences défilante horizontalement, avec une `SkillCard` pour chaque compétence.
-- `LazyColumn` : écran principal défilant verticalement, avec une `ProjectCard` pour chaque projet.
+- `ProfileUiState` regroupe `visibleProjects`, `searchQuery`, `showOnlyFavorites` et `favoriteProjectIds`.
+- Le ViewModel conserve un `MutableStateFlow` privé et expose un `StateFlow` en lecture seule avec `asStateFlow()`.
+- `onSearchQueryChange()`, `onToggleFavoriteFilter()` et `onFavoriteClick()` modifient l'état avec `update()` et `copy()`.
+- `filterProjects()` combine la recherche avec le filtre favoris. Les favoris sont identifiés par l'`id` de chaque projet.
 
-L'utilisation de `LazyColumn` permet d'afficher les différentes sections sur un petit écran sans couper le contenu. `LazyRow` permet d'accéder aux compétences qui dépassent la largeur disponible.
+### `MainActivity.kt`
 
-## Thème Material Design 3
+- `ProfileContainer` observe le flux grâce à `collectAsState()` et transmet les valeurs et les callbacks à `ProfileScreen`.
+- `ProfileScreen` et `ProjectCard` reçoivent leurs données en paramètres : ils n'hébergent pas les états de recherche et de favoris (**State Hoisting**).
+- `ContactDisclosure` gère uniquement son état local `showContact` avec `rememberSaveable`.
+- `sampleProjects()` fournit les données de démonstration.
 
-L'application utilise `MaterialTheme.colorScheme` pour les couleurs, `MaterialTheme.typography` pour la hiérarchie des textes et `MaterialTheme.shapes` pour les coins arrondis. Deux palettes sont prévues : un fond clair avec des accents bleus et un fond sombre avec des surfaces foncées et des accents bleus plus clairs. Le thème affiché sur l'application suit le réglage du système.
+**Comportement des états :** le ViewModel conserve la recherche, le filtre et les favoris pendant une rotation de l'écran. `rememberSaveable` conserve l'affichage du contact lors d'une recréation de l'activité. Il n'y a pas d'enregistrement permanent des favoris après un arrêt complet de l'application.
+
+## Technologies et composants
+
+- Kotlin, Android Studio, Jetpack Compose et Material Design 3.
+- `ViewModel`, `MutableStateFlow`, `StateFlow`, `collectAsState()` et `rememberSaveable`.
+- `LazyColumn`, `LazyRow`, `Column`, `Row`, `Box`, `Spacer`, `Card` et `Surface`.
+- `Text`, `Image`, `Icon`, `Button`, `OutlinedButton` et `OutlinedTextField`.
+
+## Lancer l'application
+
+1. Cloner le dépôt :
+
+   ```bash
+   git clone https://github.com/AlexTng44000/DeveloperProfileInteractive.git
+   ```
+
+2. Ouvrir le dossier `DeveloperProfileInteractive` dans Android Studio.
+3. Laisser Gradle se synchroniser (**Sync Project with Gradle Files**).
+4. Sélectionner un émulateur Android (API 24 minimum).
+5. Lancer la configuration **app** avec **Run**.
+
+Pour vérifier la compilation depuis un terminal à la racine du projet :
+
+```bash
+./gradlew assembleDebug
+```
+
+## Scénarios de test manuel
+
+| Action | Résultat attendu |
+| --- | --- |
+| Ouvrir l'application | Profil, compétences et 2 projets visibles |
+| Rechercher `Product` | Seul *Product Explorer* apparaît |
+| Rechercher `Kotlin` | Les 2 projets apparaissent |
+| Rechercher un texte absent | Message « Aucun projet correspondant. » et compteur à 0 |
+| Ajouter puis retirer un favori | Le libellé et le cœur du bouton changent |
+| Activer « Afficher uniquement les favoris » | Seuls les projets favoris restent visibles |
+| Associer recherche et filtre favoris | Le compteur suit les résultats combinés |
+| Afficher puis masquer le contact | La carte de contact apparaît puis disparaît |
+| Faire pivoter l'émulateur | Recherche, filtre et favoris restent conservés |
+| Ouvrir les previews | Versions claire et sombre affichées |
+
+## Previews Compose
+
+Deux fonctions `@Preview` figurent dans `MainActivity.kt` :
+
+- `ProfilePreview` : Alex TANGUY, thème clair, deux projets visibles.
+- `SecondProfilePreview` : Camille Durand, thème sombre, filtre favoris actif et recherche préremplie.
 
 ## Captures d'écran
 
-### Mode clair
+Les images ci-dessous proviennent du précédent devoir et illustrent les palettes Material Design 3 conservées dans cette version :
 
-![Profil développeur en mode clair](screenshots/proffil-clair.png)
+| Thème clair | Thème sombre |
+| --- | --- |
+| ![Profil, thème clair](screenshots/proffil-clair.png) | ![Profil, thème sombre](screenshots/proffil-sombre.png) |
 
-### Mode sombre
+**Pour documenter cette version interactive :** ajouter une capture de l'émulateur montrant la recherche, le filtre, les favoris et le compteur, par exemple sous `screenshots/profil-interactif.png`, puis insérer son lien dans cette section.
 
-![Profil développeur en mode sombre](screenshots/proffil-sombre.png)
+## Limites
 
-## Previews
+L'application utilise uniquement des données locales de démonstration. Elle n'intègre ni API distante, ni base de données, ni système de navigation. Les coordonnées du profil sont fictives. La sélection des favoris est conservée en mémoire pendant l'utilisation, sans stockage permanent.
 
-Le fichier `MainActivity.kt` contient deux previews :
+## Dépôt précédent
 
-- `ProfilePreview` : profil Alex TANGUY en mode clair.
-- `SecondProfilePreview` : profil Alex TANGUY en mode sombre.
-
-## Lancement
-
-1. Ouvrir le dossier du projet dans Android Studio.
-2. Synchroniser Gradle.
-3. Sélectionner un émulateur Android.
-4. Exécuter la configuration `app` avec **Run**.
-
-## Quelles notions du chapitre Compose UI ont été réutilisées ?
-
-J'ai réutilisé les composables de base (`Text`, `Image`, `Icon`, `Button`, `Card`, `OutlinedTextField`), les layouts (`Column`, `Row`, `Box`, `Spacer`), les listes `LazyColumn` et `LazyRow`, ainsi que les paramètres, les callbacks et les modifiers. J'ai également utilisé Material Design 3 pour les couleurs, la typographie, les formes et les aperçus clair et sombre.
+Le projet initial du CC2 reste disponible séparément : [DeveloperProfile-CC2](https://github.com/AlexTng44000/DeveloperProfile-CC2).
