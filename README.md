@@ -100,13 +100,11 @@ Deux fonctions `@Preview` figurent dans `MainActivity.kt` :
 
 ## Captures d'écran
 
-Les images ci-dessous proviennent du précédent devoir et illustrent les palettes Material Design 3 conservées dans cette version :
+Présentation de l'application interactive en modes clair et sombre.
 
-| Thème clair | Thème sombre |
+| Mode clair | Mode sombre |
 | --- | --- |
-| ![Profil, thème clair](screenshots/proffil-clair.png) | ![Profil, thème sombre](screenshots/proffil-sombre.png) |
-
-**Pour documenter cette version interactive :** ajouter une capture de l'émulateur montrant la recherche, le filtre, les favoris et le compteur, par exemple sous `screenshots/profil-interactif.png`, puis insérer son lien dans cette section.
+| ![Mode clair](screenshots/profil-interactif-clair.png) | ![Mode sombre](screenshots/profil-interactif-sombre.png) |
 
 ## Limites
 
